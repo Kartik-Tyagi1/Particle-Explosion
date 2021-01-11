@@ -17,4 +17,11 @@ Swarm::~Swarm() {
 	delete [] m_pParticles;
 }
 
+void Swarm::update(){
+	// This is a lowercase update. This uses the Update from the particle.h to move the particles
+	for(int i = 0; i < NPARTICLES; i++){
+		m_pParticles[i].Update();
+	}
+}
+
 } /* namespace kartikspace */

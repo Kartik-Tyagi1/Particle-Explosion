@@ -35,6 +35,10 @@ int main() {
 
 		// Unsigned is for security just in case we put in a value that is greater than 255
 		int elapsed_time = SDL_GetTicks();
+
+		screen.clear();
+		swarm.update();
+
 		unsigned char green = (unsigned char)((1 + sin(elapsed_time * 0.001)) * 128);
 		unsigned char red = (unsigned char)((1 + sin(elapsed_time * 0.002)) * 128);
 		unsigned char blue = (unsigned char)((1 + sin(elapsed_time * 0.003)) * 128);
