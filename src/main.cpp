@@ -25,6 +25,9 @@ int main() {
 
 	Swarm swarm;
 
+	int half_screen_width = screen.SCREEN_WIDTH/2;
+	int half_screen_height = screen.SCREEN_HEIGHT/2;
+
 
 	while(true){
 		// UPDATE PARTICLES
@@ -48,8 +51,12 @@ int main() {
 		for(int i = 0; i < Swarm::NPARTICLES; i++){
 			Particle particle = pParticles[i];
 
-			int x = (particle.m_x + 1) * screen.SCREEN_WIDTH/2;
-			int y = (particle.m_y + 1) * screen.SCREEN_HEIGHT/2;
+			int x = (particle.m_x + 1) * half_screen_width;
+
+			// We want to get the animation to be in a circle so we have to adjust the location of the y
+			// Because the screen is not a square in dimension
+
+			int y = particle.m_y * half_screen_width + half_screen_height;
 
 			screen.setPixel(x,y,red,green,blue);
 
