@@ -9,7 +9,7 @@
 
 namespace kartikspace {
 
-Screen::Screen(): m_window(NULL), m_renderer(NULL), m_texture(NULL), m_buffer(NULL) {}
+Screen::Screen(): m_window(NULL), m_renderer(NULL), m_texture(NULL), m_buffer1(NULL), m_buffer2(NULL){}
 
 bool Screen::init() {
 
@@ -52,11 +52,13 @@ bool Screen::init() {
 		}
 
 
-		m_buffer = new Uint32[SCREEN_HEIGHT * SCREEN_WIDTH];
+		m_buffer1 = new Uint32[SCREEN_HEIGHT * SCREEN_WIDTH];
+		m_buffer2 = new Uint32[SCREEN_HEIGHT * SCREEN_WIDTH];
 		//int white = 0xFF; // color white in RGB in
 
 
-		memset(m_buffer, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
+		memset(m_buffer1, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
+		memset(m_buffer2, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
 
 
 	return true;
@@ -93,19 +95,21 @@ void Screen::setPixel(int x, int y, Uint8 red, Uint8 green, Uint8 blue){
 	color <<= 8;
 	color += 0xFF;
 
-	m_buffer[(y * SCREEN_WIDTH) + x] = color;
+	m_buffer1[(y * SCREEN_WIDTH) + x] = color;
 
 }
 
 void Screen::clear(){
-	memset(m_buffer, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
+	memset(m_buffer1, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
+	memset(m_buffer2, 0, SCREEN_HEIGHT*SCREEN_WIDTH*sizeof(Uint32));
+
 }
 
 
 
 void Screen::Update(){
 
-	SDL_UpdateTexture(m_texture, NULL, m_buffer, SCREEN_WIDTH*sizeof(Uint32));
+	SDL_UpdateTexture(m_texture, NULL, m_buffer1, SCREEN_WIDTH*sizeof(Uint32));
 	SDL_RenderClear(m_renderer);
 	SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
 	SDL_RenderPresent(m_renderer);
@@ -115,11 +119,79 @@ void Screen::Update(){
 
 void Screen::close() {
 
-	delete [] m_buffer;
+	delete [] m_buffer1;
+	delete [] m_buffer2;
 	SDL_DestroyRenderer(m_renderer);
 	SDL_DestroyTexture(m_texture);
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+
+}
+
+void Screen::boxBlur(){
+	/*
+	 * We want to implement a blur. To do this we will have a second buffer m_buffer2
+	 * The second buffer will hold the contents of buffer1 but will have a blur
+	 * Buffer1 will still be the main one we draw new updates to
+	 */
+
+	//Swap the pointers of the buffers so pixels are in buffer2
+	Uint32 *temp = m_buffer1;
+	m_buffer1 = m_buffer2;
+	m_buffer2 = temp;
+
+	/*
+	 * The box blur works by taking the average color values of the 8 pixels around a single pixel
+	 *
+	 * 0 0 0
+	 * 0 1 0
+	 * 0 0 0
+	 *
+	 * There are 8 pixels around the 1
+	 * 	 * So we will need to iterate through all pixels and select the surrounding ones
+	 *
+	 */
+
+	for(int y = 0; y < SCREEN_HEIGHT; y++){
+		for(int x = 0; x < SCREEN_WIDTH; x++){
+
+			int redTotal = 0;
+			int blueTotal = 0;
+			int greenTotal = 0;
+
+			for(int row = -1; row <= 1; row++){
+				for(int col = -1; col <= 1; col++){
+
+					int currentX = x + row;
+					int currentY = y + col;
+
+					if(currentX >= 0 && currentX < SCREEN_WIDTH && currentY >= 0 && currentY < SCREEN_HEIGHT){
+						Uint32 color = m_buffer2[currentY * SCREEN_WIDTH + currentX];
+
+						// Unfortunately we cannot just add the colors just like that. We need to separate them
+
+						Uint8 red = color >> 24;
+						Uint8 green = color >> 16;
+						Uint8 blue = color >> 8;
+
+						redTotal += red;
+						greenTotal += green;
+						blueTotal += blue;
+
+					}
+				}
+			}
+
+
+			Uint8 red = redTotal/9;
+			Uint8 green = greenTotal/9;
+			Uint8 blue = blueTotal/9;
+
+			setPixel(x, y, red, green, blue);
+
+		}
+	}
+
 
 }
 

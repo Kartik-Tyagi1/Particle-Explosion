@@ -21,7 +21,7 @@ struct Particle {
 public:
 	Particle();
 	virtual ~Particle();
-	void Update();
+	void Update(int interval);
 };
 
 } /* namespace kartikspace */
