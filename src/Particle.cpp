@@ -13,10 +13,21 @@ namespace kartikspace {
 
 Particle::Particle(): m_x(0), m_y(0) {
 
+	init();
+
+}
+
+void Particle::init(){
+
+	m_x = 0;
+	m_y = 0;
+
 	// Get the particles to move in a circle so we use polar coordinates
 	m_direction = (2 * M_PI * rand())/RAND_MAX;
-	m_speed = (0.0001 * rand())/RAND_MAX;
+	m_speed = (0.001 * rand())/RAND_MAX;
+
 }
+
 
 Particle::~Particle() {
 	// TODO Auto-generated destructor stub
@@ -24,6 +35,9 @@ Particle::~Particle() {
 
 
 void Particle::Update(int interval){
+
+	m_direction += interval * 0.0003;
+
 	double xspeed = m_speed * cos(m_direction);
 	double yspeed = m_speed * sin(m_direction);
 
@@ -36,6 +50,12 @@ void Particle::Update(int interval){
 	 *
 	 * Could be jerky on slow machines
 	 */
+
+
+	// Following allows regeneration of particles that leave the screen area
+	if(m_x < -1 || m_x > 1 || m_y < -1 || m_y > 1){
+		init();
+	}
 
 
 }
